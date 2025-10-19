@@ -5,8 +5,9 @@ const GEMINI_API_KEY = "AIzaSyC00xsOxgG5_up-vWq3eC7zbOsFQ1WFKew"; // ✅ tumhari
 // ✅ Gemini API se pitch generate karne ka function
 export async function generatePitchGemini(idea, tone) {
   try {
-    const prompt = `
-You are an expert startup pitch writer.
+    console.log("🚀 Starting Gemini API call...");
+    
+    const prompt = `You are an expert startup pitch writer.
 Create a detailed ${tone} style pitch for the following startup idea: "${idea}".
 Include these sections clearly labeled:
 Startup Name:
@@ -15,28 +16,53 @@ Elevator Pitch:
 Problem:
 Solution:
 Target Audience:
-Hero Message:
-`;
+Hero Message:`;
 
-    // ✅ New correct Gemini API endpoint
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        contents: [{ parts: [{ text: prompt }] }],
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }]
+    };
+
+    console.log("📤 Request body:", requestBody);
+
+    // ✅ Updated Gemini API endpoint (latest working version)
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    console.log("🔗 API URL:", apiUrl);
+
+    const response = await axios.post(apiUrl, requestBody, {
+      headers: { 
+        "Content-Type": "application/json",
       },
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    });
 
-    const text =
-      response?.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
-      "No response received from Gemini.";
+    console.log("✅ API Response:", response.data);
+
+    const text = response?.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "No response received from Gemini.";
+    
+    console.log("📝 Generated text:", text);
 
     return parsePitchText(text);
   } catch (err) {
     console.error("❌ Gemini API Error:", err.response?.data || err.message);
-    return { error: err.message || "Failed to generate pitch" };
+    console.error("❌ Full error:", err);
+    console.error("❌ Error status:", err.response?.status);
+    console.error("❌ Error config:", err.config);
+    
+    // More specific error messages
+    if (err.response?.status === 404) {
+      return { error: "API endpoint not found. Please check the API configuration." };
+    } else if (err.response?.status === 401) {
+      return { error: "Invalid API key. Please check your Gemini API key." };
+    } else if (err.response?.status === 403) {
+      return { error: "API access forbidden. Please check your API key permissions." };
+    } else if (err.response?.status === 400) {
+      return { error: "Bad request. Please check the request format." };
+    } else {
+      return { error: err.message || "Failed to generate pitch" };
+    }
   }
 }
 
@@ -58,4 +84,29 @@ function parsePitchText(text) {
   }
 
   return pitch;
+}
+
+// ✅ Test function to check if API key is working
+export async function testGeminiAPI() {
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        contents: [{
+          parts: [{
+            text: "Hello, just testing the API connection."
+          }]
+        }]
+      },
+      {
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+    
+    console.log("✅ API Test Success:", response.data);
+    return { success: true, data: response.data };
+  } catch (err) {
+    console.error("❌ API Test Failed:", err.response?.data || err.message);
+    return { success: false, error: err.response?.data || err.message };
+  }
 }

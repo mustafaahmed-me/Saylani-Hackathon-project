@@ -18,11 +18,7 @@ function App() {
           <Route path="/CreatePitch" element={<PrivateRoute><CreatePitch/></PrivateRoute>} />
           <Route path="/GeneratedPitch" element={<PrivateRoute><GeneratedPitch/></PrivateRoute>} />
           <Route path="/Home" element={<PrivateRoute><Home/></PrivateRoute>} />
-          <Route path="/Dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>
-  }
-/>
-
-
+          <Route path="/Dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
         </Routes>
       </Router>
     </div>
